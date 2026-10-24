@@ -1,0 +1,13 @@
+{
+  "name": "PyShow",
+  "short_name": "PyShow",
+  "description": "A Python practice game: read code, find bugs, write code.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#1f9d4c",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

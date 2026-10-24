@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>PyShow tests</title>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 16px}.ok{color:#1a7f37}.bad{color:#cf222e;font-weight:700}h1{margin-bottom:4px}code{background:#eee;padding:1px 5px;border-radius:4px}</style></head>
+<body>
+<h1>PyShow self-tests</h1>
+<p>Double-click this file (next to the site files). It checks the question bank, the write-code problems and the translations. Green means fine.</p>
+<ul id="out"></ul>
+<script src="i18n.js"></script>
+<script src="bank.js"></script>
+<script src="problems.js"></script>
+<script src="content_i18n.js"></script>
+<script>
+const TOPICS = ["variables","if","loops","functions","lists","dicts","strings","errors","oop","decorators","generators","recursion","async","regex","pygame","tkinter"];
+const LVLS = ["easy","medium","hard"];
+const results = [];
+function test(name, fn) {
+  try { const bad = fn(); results.push([name, !bad || !bad.length, bad && bad.length ? bad.slice(0, 5).join(" | ") + (bad.length > 5 ? ` … (+${bad.length - 5})` : "") : ""]); }
+  catch (e) { results.push([name, false, String(e)]); }
+}
+test("Four-choice questions: 4 different options, correct one first, topic and level valid", () => {
+  const bad = [];
+  QUESTIONS.forEach((q, i) => {
+    if (!TOPICS.includes(q.topic) || !LVLS.includes(q.lvl)) bad.push(`#${i} topic/level`);
+    if (!q.code || !q.code.trim()) bad.push(`#${i} code`);
+    if (!Array.isArray(q.options) || q.options.length !== 4 || new Set(q.options).size !== 4) bad.push(`#${i} options`);
+    if (q.answer !== 0) bad.push(`#${i} answer`);
+  });
+  return bad;
+});
+test("Every question has an explanation in English and Persian", () =>
+  QUESTIONS.map((q, i) => (q.why && q.why.en && q.why.fa ? null : `#${i}`)).filter(Boolean));
+test("Every topic has questions at every level (four-choice)", () => {
+  const bad = [];
+  TOPICS.forEach((t) => LVLS.forEach((l) => { if (!QUESTIONS.some((q) => q.topic === t && q.lvl === l)) bad.push(`${t}/${l}`); }));
+  return bad;
+});
+test("Bug hunt: every game has code and bugs on real lines", () => {
+  const bad = [];
+  BUGS.forEach((b, i) => {
+    const n = b.code.split("\n").length;
+    if (!TOPICS.includes(b.topic) || !LVLS.includes(b.lvl)) bad.push(`#${i} topic/level`);
+    if (!b.bugs || !b.bugs.length || b.bugs.some((x) => x.line < 1 || x.line > n || !x.type)) bad.push(`#${i} bugs`);
+  });
+  return bad;
+});
+test("Write-code problems: texts in en + fa, starter code and tests", () => {
+  const bad = [];
+  PROBLEMS.forEach((p, i) => {
+    const id = `${p.topic}/${p.title && p.title.en}`;
+    if (!TOPICS.includes(p.topic) || !LVLS.includes(p.lvl)) bad.push(`${id} topic/level`);
+    if (!p.title.en || !p.title.fa || !p.desc.en || !p.desc.fa) bad.push(`${id} texts`);
+    if (!p.starter || !p.starter.trim()) bad.push(`${id} starter`);
+    if (!Array.isArray(p.tests) || p.tests.length < 2 || p.tests.some((t) => !Array.isArray(t) || typeof t[0] !== "string" || !/\br\s*=/.test(t[0]))) bad.push(`${id} tests (each must set r)`);
+  });
+  const titles = PROBLEMS.map((p) => p.topic + "|" + p.title.en);
+  titles.forEach((t, i) => { if (titles.indexOf(t) !== i) bad.push("duplicate title " + t); });
+  return bad;
+});
+test("Every topic has write-code problems", () => TOPICS.filter((t) => !PROBLEMS.some((p) => p.topic === t)));
+test("Python runner text exists", () => (typeof PY_RUNNER === "string" && PY_RUNNER.includes("run_tests") ? [] : ["PY_RUNNER missing"]));
+const sets = { EXTRA_T, EXTRA_T2, EXTRA_T3 };
+Object.entries(sets).forEach(([name, set]) => {
+  test(`Translations ${name}: every language has the same keys`, () => {
+    const langs = Object.keys(set), ref = new Set(Object.keys(set[langs[0]])), bad = [];
+    langs.forEach((l) => {
+      const keys = new Set(Object.keys(set[l]));
+      ref.forEach((k) => { if (!keys.has(k)) bad.push(`${l} misses ${k}`); });
+      keys.forEach((k) => { if (!ref.has(k)) bad.push(`${l} extra ${k}`); });
+    });
+    return bad;
+  });
+  test(`Translations ${name}: {placeholders} match in every language`, () => {
+    const bad = [], ph = (s) => (String(s).match(/\{\w+\}/g) || []).sort().join(",");
+    const base = set.ar || set[Object.keys(set)[0]];
+    Object.keys(set).forEach((l) => Object.keys(base).forEach((k) => { if (set[l][k] !== undefined && ph(set[l][k]) !== ph(set.en ? set.en[k] : base[k])) bad.push(`${l}.${k}`); }));
+    return bad;
+  });
+});
+test("Explanations and problems are translated into ar, zh, tr, ru, es", () => {
+  const bad = [];
+  ["ar", "zh", "tr", "ru", "es"].forEach((l) => {
+    QUESTIONS.forEach((q, i) => { if (!q.why[l]) bad.push(`${l} question #${i}`); });
+    PROBLEMS.forEach((p) => { if (!p.title[l] || !p.desc[l]) bad.push(`${l} ${p.title.en}`); });
+  });
+  return bad;
+});
+const ul = document.getElementById("out");
+results.forEach(([name, ok, why]) => {
+  const li = document.createElement("li"); li.className = ok ? "ok" : "bad";
+  li.textContent = (ok ? "✓ " : "✗ ") + name + (why ? " — " + why : ""); ul.append(li);
+});
+const failed = results.filter((r) => !r[1]).length;
+document.title = failed ? `PyShow tests: ${failed} FAILED` : `PyShow tests: all ${results.length} passed`;
+document.body.insertAdjacentHTML("afterbegin", `<p class="${failed ? "bad" : "ok"}">${document.title}</p>`);
+</script></body></html>

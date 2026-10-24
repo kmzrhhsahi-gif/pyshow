@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PyShow – Python practice game</title>
+  <meta name="description" content="PyShow is a Python practice game: read code, hunt bugs and write code, with a snake guide. Free, runs in your browser.">
+  <meta name="theme-color" content="#1f9d4c">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PyShow – Python practice game">
+  <meta property="og:description" content="Read code, hunt bugs and write Python in your browser. Level up with a snake!">
+  <meta property="og:image" content="icon.svg">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Shared gradients and patterns (used by both snakes) -->
+  <svg class="shared-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="gBody" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1100" y2="520">
+        <stop offset="0" stop-color="#3ddc6a"/>
+        <stop offset=".55" stop-color="#1f9d4c"/>
+        <stop offset="1" stop-color="#0f7a63"/>
+      </linearGradient>
+      <linearGradient id="gHead" gradientUnits="userSpaceOnUse" x1="0" y1="-50" x2="0" y2="50">
+        <stop offset="0" stop-color="#3fd36d"/>
+        <stop offset="1" stop-color="#128a45"/>
+      </linearGradient>
+      <linearGradient id="gFrame" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="600">
+        <stop offset="0" stop-color="#3ddc6a"/>
+        <stop offset=".55" stop-color="#1f9d4c"/>
+        <stop offset="1" stop-color="#0f7a63"/>
+      </linearGradient>
+      <linearGradient id="gAngry" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1000" y2="600">
+        <stop offset="0" stop-color="#ff6b4a"/>
+        <stop offset=".55" stop-color="#d12a1c"/>
+        <stop offset="1" stop-color="#8e1410"/>
+      </linearGradient>
+      <pattern id="scales" width="30" height="30" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <path d="M0 0 H30 M0 0 V30" class="scale-line" fill="none" stroke-width="1.6"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <div class="app" id="app" data-view="home">
+
+    <!-- Sidebar (appears after the click) -->
+    <aside class="sidebar" id="sidebar">
+      <button class="nav active" id="nav-home" data-view="home" data-tip="tipHome">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></span><span class="lbl" data-i18n="navHome"></span>
+      </button>
+      <button class="nav" id="nav-compete" data-view="compete" data-tip="tipCompete">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l8 8M3 5l3 3M11 13l-6 6M3 21l3-3"/><path d="M19 3l-8 8M21 5l-3 3M13 13l6 6M21 21l-3-3"/></svg></span><span class="lbl" data-i18n="navCompete"></span>
+      </button>
+      <button class="nav" id="nav-top" data-tip="tipTop">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/><path d="M12 14v4M8 21h8M10 18h4"/></svg></span><span class="lbl" data-i18n="sideTop"></span>
+      </button>
+      <button class="nav" id="nav-rewards" data-tip="tipRewards">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8h14v-8"/><path d="M12 8c-3 0-5-1-5-3s3-2 5 3c2-5 5-5 5-3s-2 3-5 3"/></svg></span><span class="lbl" data-i18n="navRewards"></span>
+      </button>
+      <button class="nav" id="nav-msgs" data-tip="tipMsgs">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 7 9-7"/></svg></span><span class="lbl" data-i18n="navMsgs"></span>
+        <span class="badge" id="badge" hidden>0</span>
+      </button>
+      <button class="nav" id="nav-profile" data-tip="tipProfile">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span><span class="lbl" data-i18n="navProfile"></span>
+      </button>
+      <button class="nav" id="nav-report" data-tip="tipReport">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2 4 2 4H5"/></svg></span><span class="lbl" data-i18n="navReport"></span>
+      </button>
+      <button class="nav" id="nav-bug" data-tip="tipBug">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="5" ry="6"/><path d="M12 8V4M9 5l2 3M15 5l-2 3M7 12H3M17 12h4M7 17l-3 2M17 17l3 2M12 8v12"/></svg></span><span class="lbl" data-i18n="navBug"></span>
+      </button>
+      <button class="nav" id="nav-feedback" data-tip="tipFeedback">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></span><span class="lbl" data-i18n="navFeedback"></span>
+      </button>
+
+      <div class="spacer"></div>
+
+      <button class="nav" id="nav-music" data-tip="tipMusic">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></span><span class="lbl" data-i18n="navMusic"></span>
+      </button>
+      <button class="nav" id="nav-lang" data-tip="tipLang">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></span><span class="lbl" data-i18n="sideLang"></span>
+      </button>
+      <button class="nav" id="nav-set" data-tip="tipSet">
+        <span class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></span><span class="lbl" data-i18n="sideSet"></span>
+      </button>
+    </aside>
+
+    <main class="main" id="main">
+      <div class="xpbar" id="xpbar" aria-label="XP"></div>
+      <div class="lives" id="lives" role="img"></div>
+
+      <!-- ================= HOME ================= -->
+      <section class="home" id="home">
+
+        <section class="stage" id="stage">
+          <svg id="hero-svg" viewBox="0 0 1100 520" preserveAspectRatio="xMinYMid meet">
+
+            <!-- Guide path (d is set by script.js) -->
+            <path id="hero-base" fill="none" stroke="none"/>
+
+            <!-- Body -->
+            <g id="hero-body">
+              <path id="hero-outer" fill="none" stroke="url(#gBody)" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
+              <path id="hero-inner" class="inner" fill="none" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+              <path id="hero-scales" fill="none" stroke="url(#scales)" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <!-- Words "tattooed" on the body (letters are created by script.js) -->
+            <g id="t1" class="word reveal"></g>
+            <g id="t2" class="word reveal"></g>
+            <g id="play-btn" class="play reveal" role="button" tabindex="0" data-tip="tipPlay">
+              <path id="play-pill" class="play-pill" fill="none" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <!-- Head: only the tongue is visible before the click -->
+            <g id="hero-head" transform="translate(-40 90)">
+              <g class="tongue">
+                <path d="M30 0 H150 M150 0 L196 -16 M150 0 L196 16" fill="none" stroke="#e02020" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                                              </g>
+              <g class="head-shape">
+                <path d="M -12 -47 C 28 -53 58 -26 68 0 C 58 26 28 53 -12 47 Z"
+                      fill="url(#gHead)" stroke="#16803a" stroke-width="2.5"/>
+                <circle cx="56" cy="-8" r="2.4" fill="#0b4a22"/>
+                <circle cx="56" cy="8" r="2.4" fill="#0b4a22"/>
+                <g class="eye">
+                  <circle cx="26" cy="-25" r="9" fill="#ffe66d" stroke="#0b4a22" stroke-width="1.5"/>
+                  <ellipse cx="28" cy="-25" rx="2.6" ry="6.5" fill="#111"/>
+                </g>
+                <g class="eye">
+                  <circle cx="26" cy="25" r="9" fill="#ffe66d" stroke="#0b4a22" stroke-width="1.5"/>
+                  <ellipse cx="28" cy="25" rx="2.6" ry="6.5" fill="#111"/>
+                </g>
+              </g>
+            </g>
+
+            <!-- Click hint -->
+            <text class="click-hint" x="40" y="48" data-i18n="click"></text>
+            <rect id="hit" x="0" y="50" width="220" height="80" fill="transparent" data-tip="tipClick" role="button" tabindex="0" aria-label="Wake the snake"/>
+          </svg>
+        </section>
+
+        <!-- Game setup panel -->
+        <section class="panel" id="panel">
+          <h2 data-i18n="panelTitle"></h2>
+
+          <div class="setup-row">
+            <div class="blk">
+              <h3 data-i18n="modeTitle"></h3>
+              <div class="options modes" id="modes">
+                <button class="chip mode active" data-value="A" data-tip="tipModeA">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M14 17.5l2.6 2.6L21 15"/></svg>
+                  <span data-i18n="modeA"></span>
+                </button>
+                <button class="chip mode" data-value="B" data-tip="tipModeB">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="5" ry="6"/><path d="M12 8V4M9 5l2 3M15 5l-2 3M7 12H3M17 12h4M7 17l-3 2M17 17l3 2M12 8v12"/></svg>
+                  <span data-i18n="modeB"></span>
+                </button>
+                <button class="chip mode" data-value="C" data-tip="tipModeC">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+                  <span data-i18n="modeC"></span>
+                </button>
+              </div>
+            </div>
+            <div class="blk">
+              <h3 data-i18n="difficulty"></h3>
+              <div class="options" id="difficulty">
+                <button class="chip active" data-value="easy" data-tip="tipEasy" data-i18n="easy"></button>
+                <button class="chip" data-value="medium" data-tip="tipMedium" data-i18n="medium"></button>
+                <button class="chip" data-value="hard" data-tip="tipHard" data-i18n="hard"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="blk">
+            <h3 data-i18n="topics"></h3>
+            <p class="note" data-i18n="proNote"></p>
+            <div class="options" id="topics">
+              <button class="chip" data-value="variables" data-tip="tipTopic" data-i18n="t_variables"></button>
+              <button class="chip" data-value="if" data-tip="tipTopic" data-i18n="t_if"></button>
+              <button class="chip" data-value="loops" data-tip="tipTopic" data-i18n="t_loops"></button>
+              <button class="chip" data-value="functions" data-tip="tipTopic" data-i18n="t_functions"></button>
+              <button class="chip" data-value="lists" data-tip="tipTopic" data-i18n="t_lists"></button>
+              <button class="chip" data-value="dicts" data-tip="tipTopic" data-i18n="t_dicts"></button>
+              <button class="chip" data-value="strings" data-tip="tipTopic" data-i18n="t_strings"></button>
+              <button class="chip" data-value="errors" data-tip="tipTopic" data-i18n="t_errors"></button>
+              <button class="chip pro" id="pro-chip" data-tip="tipPro" data-i18n="t_pro"></button>
+            </div>
+            <div class="pro-box" id="pro-box" hidden>
+              <h3 data-i18n="proTitle"></h3>
+              <p class="note" data-i18n="proHint"></p>
+              <div class="options" id="pro-topics">
+                <button class="chip" data-value="oop" data-tip="tipTopic" data-i18n="t_oop"></button>
+                <button class="chip" data-value="decorators" data-tip="tipTopic" data-i18n="t_decorators"></button>
+                <button class="chip" data-value="generators" data-tip="tipTopic" data-i18n="t_generators"></button>
+                <button class="chip" data-value="recursion" data-tip="tipTopic" data-i18n="t_recursion"></button>
+                <button class="chip" data-value="async" data-tip="tipTopic" data-i18n="t_async"></button>
+                <button class="chip" data-value="regex" data-tip="tipTopic" data-i18n="t_regex"></button>
+                <button class="chip" data-value="pygame" data-tip="tipTopic" data-i18n="t_pygame"></button>
+                <button class="chip" data-value="tkinter" data-tip="tipTopic" data-i18n="t_tkinter"></button>
+              </div>
+            </div>
+          </div>
+
+          <p class="msg" id="msg" aria-live="polite"></p>
+        </section>
+      </section>
+
+      <!-- ================= COMPETITION ================= -->
+      <section class="compete" id="compete">
+        <div class="compete-card">
+          <div class="big"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l8 8M3 5l3 3M11 13l-6 6M3 21l3-3"/><path d="M19 3l-8 8M21 5l-3 3M13 13l6 6M21 21l-3-3"/></svg></div>
+          <h2 data-i18n="competeTitle"></h2>
+          <p class="empty" data-i18n="competeText"></p>
+          <button class="btn-primary" id="bot-btn" data-i18n="botPlay"></button>
+          <button class="chip" id="compete-btn" data-i18n="competeBtn"></button>
+          <p class="msg" id="compete-msg"></p>
+        </div>
+      </section>
+
+      <!-- ================= GAME (snake frame + code screen) ================= -->
+      <section class="game" id="game">
+        <svg class="frame-svg" id="frame-svg" preserveAspectRatio="none">
+          <path id="frame-base" fill="none" stroke="none"/>
+          <g id="frame-body">
+            <path id="frame-outer" fill="none" stroke="url(#gFrame)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="frame-inner" class="inner" fill="none" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+            <path id="frame-scales" fill="none" stroke="url(#scales)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+          <g id="frame-head"></g>
+        </svg>
+
+        <div class="game-inner" id="game-inner">
+          <div class="monitor">
+            <div class="mon-bar"><i></i><i></i><i></i><span>main.py</span></div>
+            <div class="code-scroll"><div id="code" class="code"></div></div>
+          </div>
+          <div class="answers" id="answers"></div>
+          <div class="game-actions">
+            <div class="qtimer" id="qtimer" aria-hidden="true"><div class="qt-top"><span data-i18n="timeLeft"></span><b id="qt-sec"></b></div><div class="qt-bar"><i id="qt-fill"></i></div></div>
+            <button class="btn-primary" id="confirm" data-i18n="confirm" data-tip="tipConfirm" disabled></button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="sr-only" id="sr" aria-live="assertive"></div>
+
+  <!-- Modal -->
+  <div class="modal-bg" id="modal-bg" hidden>
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="x" id="modal-x" aria-label="close">✕</button>
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Result card (shown on Home after a game) -->
+  <div class="result-bg" id="result" hidden>
+    <div class="result-card" id="result-card" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <!-- Snake bite overlay (wrong answer) -->
+  <div class="bite" id="bite" hidden>
+    <div class="flash"></div>
+    <svg class="bite-head" viewBox="0 0 400 400" aria-hidden="true">
+      <defs>
+        <linearGradient id="bH" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#27553a"/>
+          <stop offset=".6" stop-color="#0d2217"/>
+          <stop offset="1" stop-color="#040a07"/>
+        </linearGradient>
+        <radialGradient id="bE" cx="50%" cy="50%" r="60%">
+          <stop offset="0" stop-color="#fff3a0"/>
+          <stop offset=".45" stop-color="#ff8a1f"/>
+          <stop offset="1" stop-color="#c4150c"/>
+        </radialGradient>
+        <linearGradient id="bM" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3a0409"/>
+          <stop offset="1" stop-color="#9c0d16"/>
+        </linearGradient>
+        <pattern id="bS" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <path d="M0 0H16M0 0V16" stroke="#7dffa8" stroke-opacity=".13" stroke-width="1.4" fill="none"/>
+        </pattern>
+        <filter id="bG" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <path d="M200 28 C 292 38 366 108 374 208 C 380 300 300 374 200 382 C 100 374 20 300 26 208 C 34 108 108 38 200 28 Z" fill="url(#bH)" stroke="#02100a" stroke-width="5"/>
+      <path d="M200 28 C 292 38 366 108 374 208 C 380 300 300 374 200 382 C 100 374 20 300 26 208 C 34 108 108 38 200 28 Z" fill="url(#bS)"/>
+      <path d="M92 252 Q200 212 308 252 Q 336 340 200 376 Q 64 340 92 252 Z" fill="url(#bM)" stroke="#02100a" stroke-width="4"/>
+      <path d="M200 300 V 370 M200 370 L 182 396 M200 370 L 218 396" fill="none" stroke="#ff2a2a" stroke-width="7" stroke-linecap="round"/>
+      <path d="M132 250 Q 120 304 146 358 Q 156 304 170 254 Z" fill="#f4f1e6" stroke="#9a9684" stroke-width="2"/>
+      <path d="M268 250 Q 280 304 254 358 Q 244 304 230 254 Z" fill="#f4f1e6" stroke="#9a9684" stroke-width="2"/>
+      <ellipse cx="146" cy="372" rx="4" ry="7" fill="#b6ff3d"/>
+      <ellipse cx="254" cy="372" rx="4" ry="7" fill="#b6ff3d"/>
+      <ellipse cx="122" cy="168" rx="40" ry="24" fill="#ff5a1f" opacity=".7" filter="url(#bG)" transform="rotate(-12 122 168)"/>
+      <ellipse cx="278" cy="168" rx="40" ry="24" fill="#ff5a1f" opacity=".7" filter="url(#bG)" transform="rotate(12 278 168)"/>
+      <ellipse cx="122" cy="168" rx="34" ry="19" fill="url(#bE)" stroke="#02100a" stroke-width="3" transform="rotate(-12 122 168)"/>
+      <ellipse cx="278" cy="168" rx="34" ry="19" fill="url(#bE)" stroke="#02100a" stroke-width="3" transform="rotate(12 278 168)"/>
+      <ellipse cx="122" cy="168" rx="5" ry="17" fill="#000" transform="rotate(-12 122 168)"/>
+      <ellipse cx="278" cy="168" rx="5" ry="17" fill="#000" transform="rotate(12 278 168)"/>
+      <path d="M62 140 L172 122 L166 150 L84 164 Z" fill="#02100a"/>
+      <path d="M338 140 L228 122 L234 150 L316 164 Z" fill="#02100a"/>
+    </svg>
+  </div>
+
+  <!-- Dim layer behind the help card -->
+  <div id="dim"></div>
+
+  <!-- Hover tooltip -->
+  <div id="tip" role="tooltip"></div>
+
+  <script src="i18n.js"></script>
+  <script src="bank.js"></script>
+  <script src="problems.js"></script>
+  <script src="content_i18n.js"></script>
+  <script src="flags.js"></script>
+  <script src="core.js"></script>
+  <script src="snake.js"></script>
+  <script src="sound.js"></script>
+  <script src="python.js"></script>
+  <script src="game.js"></script>
+  <script src="ui.js"></script>
+  <script src="main.js"></script>
+  <script>if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(function () {});</script>
+</body>
+</html>
