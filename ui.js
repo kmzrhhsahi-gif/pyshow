@@ -678,3 +678,4 @@ function openLessons(topic) {
   });
 }
 $("lesson-btn").addEventListener("click", () => openLessons());
+$("nav-lessons").addEventListener("click", () => { if (busy || view === "game") return; openLessons(); });
