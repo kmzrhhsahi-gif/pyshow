@@ -899,3 +899,11 @@ html.shielded::after { content: ""; position: fixed; inset: 0; background: #0b0f
 @media (max-width: 700px) { .xpbar { width: 150px; } }
 
 [data-theme="dark"] .lb-row:nth-child(-n+3) .rk, [data-theme="neon"] .lb-row:nth-child(-n+3) .rk, [data-theme="lava"] .lb-row:nth-child(-n+3) .rk, [data-theme="ocean"] .lb-row:nth-child(-n+3) .rk { color: #ffd34d; }
+
+/* lessons */
+.lesson-btn { margin-inline-start: 8px; padding: 4px 12px; font-size: .85rem; vertical-align: middle; }
+.lesson-tabs { margin-bottom: 12px; }
+.lesson h3 { margin: 4px 0 8px; }
+.lesson ul { margin: 0 0 12px; padding-inline-start: 20px; line-height: 1.8; }
+.lesson-code { direction: ltr; text-align: left; margin: 0; padding: 12px 14px; border-radius: 10px; background: #0d1b2a; color: #e6edf3;
+  font-family: "JetBrains Mono", Consolas, monospace; font-size: .86rem; line-height: 1.55; overflow: auto; max-height: 40vh; white-space: pre; }

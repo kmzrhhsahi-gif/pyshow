@@ -570,6 +570,10 @@ function showResult(win, delta, up) {
   if (!win && lockLeft() > 0) card.append(el("p", { class: "empty", text: lockText() }));
   const rv = reviewBlock();
   if (rv) card.append(rv);
+  if (!win && session && typeof LESSONS !== "undefined" && LESSONS[session.q.topic]) {
+    const tp = session.q.topic;
+    card.append(el("button", { class: "chip", type: "button", text: t("lessonRead"), onclick: () => { $("result").hidden = true; openLessons(tp); } }));
+  }
   card.append(el("button", { class: "btn-primary", text: t("okBtn"), onclick: () => { $("result").hidden = true; } }));
   $("result").hidden = false;
 }

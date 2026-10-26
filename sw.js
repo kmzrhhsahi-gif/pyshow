@@ -1,7 +1,7 @@
 // PyShow service worker: keeps the site files so it opens fast and works offline.
 // (Python for the "Write code" mode still needs the internet the first time.)
-const CACHE = "pyshow-v3";
-const FILES = ["./", "index.html", "style.css", "flags.js", "core.js", "snake.js", "sound.js", "python.js", "game.js", "ui.js", "main.js", "i18n.js", "bank.js", "problems.js", "content_i18n.js", "icon.svg", "manifest.webmanifest"];
+const CACHE = "pyshow-v4";
+const FILES = ["./", "index.html", "style.css", "flags.js", "core.js", "snake.js", "sound.js", "python.js", "game.js", "ui.js", "main.js", "i18n.js", "bank.js", "problems.js", "content_i18n.js", "lessons.js", "icon.svg", "manifest.webmanifest"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));

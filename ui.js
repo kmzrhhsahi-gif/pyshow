@@ -654,3 +654,27 @@ const tourWatch = setInterval(() => {
   if (!load("pyshow_tour", "")) { save("pyshow_tour", "1"); setTimeout(startTour, 1200); }
 }, 800);
 
+
+
+// ================= Lessons (short text lessons for every topic) =================
+function openLessons(topic) {
+  const keys = Object.keys(LESSONS);
+  topic = LESSONS[topic] ? topic : keys[0];
+  openModal(t("lessonBtn"), (body) => {
+    const tabs = el("div", { class: "options lesson-tabs" });
+    const page = el("div", { class: "lesson" });
+    const show = (k) => {
+      const L = LESSONS[k], tx = L[state.lang] || L.en;
+      tabs.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.value === k));
+      page.innerHTML = "";
+      page.append(el("h3", { text: tx.t }));
+      const ul = el("ul");
+      tx.p.forEach((p) => ul.append(el("li", { text: p })));
+      page.append(ul, el("pre", { class: "lesson-code" }, el("code", { text: L.code })));
+    };
+    keys.forEach((k) => tabs.append(el("button", { class: "chip", type: "button", "data-value": k, text: t("t_" + k), onclick: () => show(k) })));
+    body.append(tabs, page);
+    show(topic);
+  });
+}
+$("lesson-btn").addEventListener("click", () => openLessons());
