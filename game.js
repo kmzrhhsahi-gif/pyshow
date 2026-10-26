@@ -173,7 +173,8 @@ function shuffle(a) {
 const RECENT = [];
 // ----- Review list: questions you got wrong come back later (after 10 min, 1, 3, 7 days) until you answer them right again -----
 const MISS_GAP = [10 * 60e3, 864e5, 3 * 864e5, 7 * 864e5];
-const qKey = (q) => (q.title || q.code || "").slice(0, 90);
+const qStr = (v) => (typeof v === "string" ? v : v && typeof v === "object" ? (v.en || Object.values(v)[0] || "") : "");   // a title may be translated into an object
+const qKey = (q) => (qStr(q.title) || qStr(q.code)).slice(0, 90);
 function getMiss() { try { return JSON.parse(load("pyshow_miss", "{}")) || {}; } catch (e) { return {}; } }
 function recordMiss(q, win) {
   const m = getMiss(), k = qKey(q); if (!k) return;
