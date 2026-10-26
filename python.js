@@ -1,7 +1,7 @@
 // PyShow – Python in the browser for the Write code mode.
 // The files share one global scope and are loaded in this order: i18n, bank, problems, core, snake, sound, python, game, ui, main.
 // ================= Python in the browser (Pyodide, in a worker so an endless loop can be stopped) =================
-const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+const PYODIDE_URL = new URL("pyodide/pyodide.js", location.href).href;   // files are hosted with the site so it also works without access to the CDN
 const PyRunner = {
   worker: null, ready: null, jobs: {}, n: 0,
   start() {

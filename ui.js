@@ -340,7 +340,7 @@ $("nav-profile").addEventListener("click", () => {
       el("div", { class: "lvl" }, el("b", { text: t("lvlN").replace("{n}", lv) }), el("span", { text: `${xp} ${t("xp")}` })),
       el("div", { class: "bar" }, el("i", { style: `width:${((xp - a) / (b - a)) * 100}%` })),
       el("p", { class: "empty", text: t("xpToNext").replace("{n}", b - xp).replace("{l}", lv + 1) }),
-      el("div", { class: "stats" }, stat(totalPoints(), t("score")), stat(games.length, t("games")), stat(best, t("best")), stat(getStreak().n, t("streakLbl")), stat(load("pyshow_visits", "1"), t("visitsLbl"))),
+      el("div", { class: "stats" }, stat(totalPoints(), t("score")), stat(games.length, t("games")), stat(best, t("best")), stat(getStreak().n, t("streakLbl")), stat(Object.keys(getMiss()).length, t("missLbl")), stat(load("pyshow_visits", "1"), t("visitsLbl"))),
       field(t("username"), name),
       field(t("country"), el("div", { class: "country-row" }, country, prev)),
       el("button", { class: "btn-primary", text: t("save"), onclick: () => {

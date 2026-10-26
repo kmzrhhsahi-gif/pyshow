@@ -171,7 +171,24 @@ function shuffle(a) {
 
 // picks a question of one of the chosen topics, preferring the chosen difficulty
 const RECENT = [];
+// ----- Review list: questions you got wrong come back later (after 10 min, 1, 3, 7 days) until you answer them right again -----
+const MISS_GAP = [10 * 60e3, 864e5, 3 * 864e5, 7 * 864e5];
+const qKey = (q) => (q.title || q.code || "").slice(0, 90);
+function getMiss() { try { return JSON.parse(load("pyshow_miss", "{}")) || {}; } catch (e) { return {}; } }
+function recordMiss(q, win) {
+  const m = getMiss(), k = qKey(q); if (!k) return;
+  if (!win) m[k] = { b: 0, due: Date.now() + MISS_GAP[0] };
+  else if (m[k]) { m[k].b++; if (m[k].b >= MISS_GAP.length) delete m[k]; else m[k].due = Date.now() + MISS_GAP[m[k].b]; }
+  save("pyshow_miss", JSON.stringify(m));
+}
 function pickQuestion(pool, topics, diff) {
+  const miss = getMiss(), now = Date.now();
+  const due = pool.filter((q) => miss[qKey(q)] && miss[qKey(q)].due <= now && !RECENT.includes(q));
+  if (due.length && Math.random() < 0.4) {                          // sometimes bring back a question you got wrong
+    const q = due[Math.floor(Math.random() * due.length)];
+    RECENT.push(q); if (RECENT.length > 12) RECENT.shift();
+    return q;
+  }
   let c = pool.filter((q) => topics.includes(q.topic));
   if (!c.length) c = pool;
   const m = c.filter((q) => q.lvl === diff);
@@ -422,6 +439,7 @@ function recordGame(win) {
   save("pyshow_combo", String(combo));
   lastCombo = win && combo > 1 ? { n: combo, pct: Math.round((comboMult(combo) - 1) * 100) } : null;
   if (win) pts = Math.round(pts * comboMult(combo));
+  recordMiss(session.q, win);
   touchStreak();
   if (win) dailyWin();
   const delta = win ? pts : -Math.round(pts / 2);
