@@ -355,7 +355,19 @@ function checkBugs() {
   return want === got;
 }
 
+// A faint watermark (name, date, short id) over the game: it cannot stop a screenshot, but a shared picture shows where it came from.
+function updateWatermark() {
+  let w = $("wm");
+  if (!w) { w = document.createElement("div"); w.id = "wm"; w.className = "wm"; w.setAttribute("aria-hidden", "true"); document.body.append(w); }
+  let vid = load("pyshow_vid", "");
+  if (!vid) { vid = Math.random().toString(36).slice(2, 8); save("pyshow_vid", vid); }
+  const name = (load("pyshow_name", "") || "PyShow").replace(/[<>&"']/g, "");
+  const txt = `${name} · ${new Date().toISOString().slice(0, 10)} · ${vid}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="360" height="200"><text x="20" y="110" transform="rotate(-24 180 100)" font-family="monospace" font-size="17" fill="#808080" fill-opacity="0.16">${txt}</text></svg>`;
+  w.style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+}
 function setupQuestion() {
+  updateWatermark();
   const q = session.q;
   const codeEl = $("code");
   codeEl.innerHTML = "";

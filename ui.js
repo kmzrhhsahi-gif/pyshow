@@ -667,6 +667,7 @@ function openLessons(topic) {
       const L = LESSONS[k], tx = L[state.lang] || L.en;
       tabs.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.value === k));
       page.innerHTML = "";
+      page.dir = L[state.lang] ? "" : "ltr";           // lessons exist in Persian and English only; the English text reads left to right
       page.append(el("h3", { text: tx.t }));
       const ul = el("ul");
       tx.p.forEach((p) => ul.append(el("li", { text: p })));

@@ -907,3 +907,7 @@ html.shielded::after { content: ""; position: fixed; inset: 0; background: #0b0f
 .lesson ul { margin: 0 0 12px; padding-inline-start: 20px; line-height: 1.8; }
 .lesson-code { direction: ltr; text-align: left; margin: 0; padding: 12px 14px; border-radius: 10px; background: #0d1b2a; color: #e6edf3;
   font-family: "JetBrains Mono", Consolas, monospace; font-size: .86rem; line-height: 1.55; overflow: auto; max-height: 40vh; white-space: pre; }
+
+/* watermark over the game screen */
+.wm { position: fixed; inset: 0; pointer-events: none; z-index: 30; display: none; background-repeat: repeat; }
+body:has(.app[data-view="game"]) .wm { display: block; }
